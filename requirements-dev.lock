@@ -91,10 +91,12 @@ requests==2.32.3
     # via smart-home-server
 rich==13.7.1
     # via typer
-ruff==0.4.10
+ruff==0.5.0
     # via smart-home-server
 s3transfer==0.10.1
     # via boto3
+schedule==1.2.2
+    # via smart-home-server
 shellingham==1.5.4
     # via typer
 six==1.16.0
