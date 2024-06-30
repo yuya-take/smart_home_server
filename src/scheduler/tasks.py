@@ -2,7 +2,10 @@ import schedule
 import time
 from slack import SlackManager
 from bme import BmeSensor
+from database import PostgresManager
+from database.models import SensorDataModel
 from logger.logger import logger
+from utils.error_types import CreateRecordError
 
 
 try:
@@ -16,6 +19,12 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize BmeSensor: {e}")
     bme_sensor = None
+
+try:
+    postgres_manager = PostgresManager()
+except Exception as e:
+    logger.error(f"Failed to initialize PostgresManager: {e}")
+    postgres_manager = None
 
 
 def monitor_message_task():
@@ -75,6 +84,13 @@ def monitor_sensor_to_save_data_task():
             logger.debug(f"Humidity: {humidity} %")
             if gas_resistance:
                 logger.debug(f"Gas Resistance: {gas_resistance} Ohms")
+            sensor_data_model = SensorDataModel(
+                temperature=temperature, pressure=pressure, humidity=humidity, air_quality=gas_resistance
+            )
+            try:
+                postgres_manager.create_record_in_sensor_data(sensor_data_model)
+            except CreateRecordError as e:
+                logger.error(str(e))
         else:
             logger.error("Failed to read sensor data")
     except Exception as e:
