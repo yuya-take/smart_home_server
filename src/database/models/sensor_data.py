@@ -8,4 +8,4 @@ class SensorDataModel(SQLModel, table=True):
     humidity: float
     pressure: float
     air_quality: float | None = None
-    timestamp: datetime = Field(default_factory=datetime.now())
+    timestamp: datetime = Field(default_factory=datetime.now)
