@@ -34,18 +34,15 @@ class BmeSensor:
         self.sensor.select_gas_heater_profile(0)
 
     def get_sensor_data(self):
-        if self.sensor.get_sensor_data():
-            temperature = self.sensor.data.temperature
-            pressure = self.sensor.data.pressure
-            humidity = self.sensor.data.humidity
-            output = "{0:.2f} C,{1:.2f} hPa,{2:.2f} %RH".format(temperature, pressure, humidity)
+        temperature = self.sensor.data.temperature
+        pressure = self.sensor.data.pressure
+        humidity = self.sensor.data.humidity
+        output = "{0:.2f} C,{1:.2f} hPa,{2:.2f} %RH".format(temperature, pressure, humidity)
 
-            if self.sensor.data.heat_stable:
-                gas_resistance = self.sensor.data.gas_resistance
-                logger.info("{0},{1} Ohms".format(output, gas_resistance))
-            else:
-                gas_resistance = None
-                logger.info(output)
-            return temperature, pressure, humidity, gas_resistance
-
-        return None, None, None, None
+        if self.sensor.data.heat_stable:
+            gas_resistance = self.sensor.data.gas_resistance
+            logger.info("{0},{1} Ohms".format(output, gas_resistance))
+        else:
+            gas_resistance = None
+            logger.info(output)
+        return temperature, pressure, humidity, gas_resistance
