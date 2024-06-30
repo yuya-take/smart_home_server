@@ -74,6 +74,8 @@ mdurl==0.1.2
     # via markdown-it-py
 orjson==3.10.5
     # via fastapi
+psycopg2-binary==2.9.9
+    # via smart-home-server
 pydantic==2.7.4
     # via fastapi
     # via sqlmodel

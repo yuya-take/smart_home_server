@@ -19,6 +19,7 @@ dependencies = [
     "bme680>=2.0.0",
     "schedule>=1.2.2",
     "sqlmodel>=0.0.19",
+    "psycopg2-binary>=2.9.9",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
