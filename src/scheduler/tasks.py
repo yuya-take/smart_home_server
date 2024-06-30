@@ -99,8 +99,8 @@ def monitor_sensor_to_send_message_task():
 def schedule_tasks():
     logger.info("Start Smart Home Scheduler")
     slack_manager.send_message("Starting the scheduler")
-    schedule.every(10).seconds.do(monitor_message_task)
-    schedule.every(10).seconds.do(monitor_sensor_to_save_data_task)
+    schedule.every(5).seconds.do(monitor_message_task)
+    schedule.every(30).seconds.do(monitor_sensor_to_save_data_task)
     schedule.every(1).hour.do(monitor_sensor_to_send_message_task)
 
     while True:

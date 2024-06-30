@@ -41,8 +41,8 @@ class BmeSensor:
 
         if self.sensor.data.heat_stable:
             gas_resistance = self.sensor.data.gas_resistance
-            logger.debug("{0},{1} Ohms".format(output, gas_resistance))
+            logger.info("{0},{1} Ohms".format(output, gas_resistance))
         else:
             gas_resistance = None
-            logger.debug(output)
+            logger.info(output)
         return temperature, pressure, humidity, gas_resistance
