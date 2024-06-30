@@ -21,7 +21,7 @@ class SlackManager:
         try:
             # Call the chat.postMessage method using the WebClient
             result = self.client.chat_postMessage(channel=self.channel_id, text=message)
-            logging.info(result)
+            logging.debug(result)
 
         except SlackApiError as e:
             logging.error(f"Error posting message: {e}")
