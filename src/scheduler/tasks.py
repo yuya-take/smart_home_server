@@ -1,7 +1,7 @@
 import schedule
 import time
 from slack import SlackManager
-from bme680 import BmeSensor
+from bme import BmeSensor
 from logger.logger import logger
 
 
