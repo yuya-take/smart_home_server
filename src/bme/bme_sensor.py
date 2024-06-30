@@ -10,12 +10,12 @@ class BmeSensor:
         except (RuntimeError, IOError):
             self.sensor = bme680.BME680(bme680.I2C_ADDR_SECONDARY)
 
-        logger.info("Calibration data:")
+        logger.debug("Calibration data:")
         for name in dir(self.sensor.calibration_data):
             if not name.startswith("_"):
                 value = getattr(self.sensor.calibration_data, name)
                 if isinstance(value, int):
-                    logger.info("{}: {}".format(name, value))
+                    logger.debug("{}: {}".format(name, value))
 
         self.sensor.set_humidity_oversample(bme680.OS_2X)
         self.sensor.set_pressure_oversample(bme680.OS_4X)
@@ -23,11 +23,11 @@ class BmeSensor:
         self.sensor.set_filter(bme680.FILTER_SIZE_3)
         self.sensor.set_gas_status(bme680.ENABLE_GAS_MEAS)
 
-        logger.info("Initial reading:")
+        logger.debug("Initial reading:")
         for name in dir(self.sensor.data):
             value = getattr(self.sensor.data, name)
             if not name.startswith("_"):
-                logger.info("{}: {}".format(name, value))
+                logger.debug("{}: {}".format(name, value))
 
         self.sensor.set_gas_heater_temperature(320)
         self.sensor.set_gas_heater_duration(150)
