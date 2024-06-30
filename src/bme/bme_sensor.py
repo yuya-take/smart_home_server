@@ -34,6 +34,9 @@ class BmeSensor:
         self.sensor.select_gas_heater_profile(0)
 
     def get_sensor_data(self):
+        # データを更新
+        self.sensor.get_sensor_data()
+
         temperature = self.sensor.data.temperature
         pressure = self.sensor.data.pressure
         humidity = self.sensor.data.humidity
