@@ -3,6 +3,8 @@ from sqlmodel import SQLModel, Field, create_engine, Session
 
 
 class SensorDataModel(SQLModel, table=True):
+    __tablename__ = "sensor_data"
+
     id: int | None = Field(default=None, primary_key=True)
     temperature: float
     humidity: float
