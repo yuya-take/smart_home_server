@@ -1,1 +1,2 @@
 from .calculate_di import calculate_discomfort_index
+from .calculate_aqi import calculate_air_quality_index

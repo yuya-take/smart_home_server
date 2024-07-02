@@ -5,7 +5,7 @@ from bme import BmeSensor
 from database import PostgresManager
 from database.models import SensorDataModel
 from logger.logger import logger
-from utils import calculate_discomfort_index
+from utils import calculate_discomfort_index, calculate_air_quality_index
 from utils.error_types import CreateRecordError
 
 
@@ -63,8 +63,12 @@ def monitor_message_task():
             if "ガス" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
                 if gas_resistance:
-                    logger.info(f"Gas Resistance: {gas_resistance} Ohms")
-                    response_messages.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
+                    if temperature and humidity:
+                        air_quality_index, feeling = calculate_air_quality_index(gas_resistance, temperature, humidity)
+                        response_messages.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
+                        response_messages.append(f"🌫️ 空気質指数: {air_quality_index} ({feeling})")
+                    else:
+                        response_messages.append("🌫️ 空気質指数: データ取得失敗")
                 else:
                     response_messages.append("🛠️ ガス抵抗: データ取得失敗")
 
@@ -92,7 +96,12 @@ def monitor_message_task():
                 else:
                     all_data.append("🌬️ 気圧: データ取得失敗")
                 if gas_resistance:
-                    all_data.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
+                    if temperature and humidity:
+                        air_quality_index, feeling = calculate_air_quality_index(gas_resistance, temperature, humidity)
+                        all_data.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
+                        all_data.append(f"🌫️ 空気質指数: {air_quality_index} ({feeling})")
+                    else:
+                        all_data.append("🌫️ 空気質指数: データ取得失敗")
                 else:
                     all_data.append("🛠️ ガス抵抗: データ取得失敗")
                 if temperature and humidity:
