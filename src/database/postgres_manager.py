@@ -44,5 +44,6 @@ class PostgresManager:
             with self.session_scope() as session:
                 session.add(sensor_data_model)
                 logger.info(f"Record created in sensor_data: {sensor_data_model}")
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to create record in sensor_data: {e}")
             raise CreateRecordError("Failed to create record in sensor_data") from None
