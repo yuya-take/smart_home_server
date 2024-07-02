@@ -20,11 +20,11 @@ except Exception as e:
     logger.error(f"Failed to initialize BmeSensor: {e}")
     bme_sensor = None
 
-# try:
-#     postgres_manager = PostgresManager()
-# except Exception as e:
-#     logger.error(f"Failed to initialize PostgresManager: {e}")
-#     postgres_manager = None
+try:
+    postgres_manager = PostgresManager()
+except Exception as e:
+    logger.error(f"Failed to initialize PostgresManager: {e}")
+    postgres_manager = None
 
 
 def monitor_message_task():
@@ -75,26 +75,26 @@ def monitor_message_task():
         logger.error(f"Failed to get latest message: {e}")
 
 
-# def monitor_sensor_to_save_data_task():
-#     try:
-#         temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
-#         if temperature and pressure and humidity:
-#             logger.debug(f"Temperature: {temperature} C")
-#             logger.debug(f"Pressure: {pressure} hPa")
-#             logger.debug(f"Humidity: {humidity} %")
-#             if gas_resistance:
-#                 logger.debug(f"Gas Resistance: {gas_resistance} Ohms")
-#             sensor_data_model = SensorDataModel(
-#                 temperature=temperature, pressure=pressure, humidity=humidity, air_quality=gas_resistance
-#             )
-#             try:
-#                 postgres_manager.create_record_in_sensor_data(sensor_data_model)
-#             except CreateRecordError as e:
-#                 logger.error(str(e))
-#         else:
-#             logger.error("Failed to read sensor data")
-#     except Exception as e:
-#         logger.error(f"Failed to read sensor data: {e}")
+def monitor_sensor_to_save_data_task():
+    try:
+        temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
+        if temperature and pressure and humidity:
+            logger.debug(f"Temperature: {temperature} C")
+            logger.debug(f"Pressure: {pressure} hPa")
+            logger.debug(f"Humidity: {humidity} %")
+            if gas_resistance:
+                logger.debug(f"Gas Resistance: {gas_resistance} Ohms")
+            sensor_data_model = SensorDataModel(
+                temperature=temperature, pressure=pressure, humidity=humidity, air_quality=gas_resistance
+            )
+            try:
+                postgres_manager.create_record_in_sensor_data(sensor_data_model)
+            except CreateRecordError as e:
+                logger.error(str(e))
+        else:
+            logger.error("Failed to read sensor data")
+    except Exception as e:
+        logger.error(f"Failed to read sensor data: {e}")
 
 
 def monitor_sensor_to_send_message_task():
@@ -116,7 +116,7 @@ def schedule_tasks():
     logger.info("Start Smart Home Scheduler")
     slack_manager.send_message("Starting the scheduler")
     schedule.every(5).seconds.do(monitor_message_task)
-    # schedule.every(30).seconds.do(monitor_sensor_to_save_data_task)
+    schedule.every(30).seconds.do(monitor_sensor_to_save_data_task)
     schedule.every(1).hour.do(monitor_sensor_to_send_message_task)
 
     while True:
