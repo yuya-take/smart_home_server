@@ -5,6 +5,7 @@ from bme import BmeSensor
 from database import PostgresManager
 from database.models import SensorDataModel
 from logger.logger import logger
+from utils import calculate_discomfort_index
 from utils.error_types import CreateRecordError
 
 
@@ -33,44 +34,77 @@ def monitor_message_task():
         if latest_message:
             logger.info(f"New message: {latest_message['text']}")
             text = latest_message["text"]
+            response_messages = []
+
             if "温度" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
                 if temperature:
                     logger.info(f"Temperature: {temperature} C")
-                    slack_manager.send_message(f"温度は{temperature}℃です。")
+                    response_messages.append(f"🌡️ 温度: {temperature:.2f}℃")
                 else:
-                    slack_manager.send_message("温度を取得できませんでした。")
+                    response_messages.append("🌡️ 温度: データ取得失敗")
+
             if "湿度" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
                 if humidity:
                     logger.info(f"Humidity: {humidity} %")
-                    slack_manager.send_message(f"湿度は{humidity}%です。")
+                    response_messages.append(f"💧 湿度: {humidity:.2f}%")
                 else:
-                    slack_manager.send_message("湿度を取得できませんでした。")
+                    response_messages.append("💧 湿度: データ取得失敗")
+
             if "気圧" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
                 if pressure:
                     logger.info(f"Pressure: {pressure} hPa")
-                    slack_manager.send_message(f"気圧は{pressure}hPaです。")
+                    response_messages.append(f"🌬️ 気圧: {pressure:.2f} hPa")
                 else:
-                    slack_manager.send_message("気圧を取得できませんでした。")
+                    response_messages.append("🌬️ 気圧: データ取得失敗")
+
             if "ガス" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
                 if gas_resistance:
                     logger.info(f"Gas Resistance: {gas_resistance} Ohms")
-                    slack_manager.send_message(f"ガス抵抗は{gas_resistance}Ohmsです。")
+                    response_messages.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
                 else:
-                    slack_manager.send_message("ガス抵抗を取得できませんでした。")
+                    response_messages.append("🛠️ ガス抵抗: データ取得失敗")
+
+            if "不快指数" in text or "不快" in text:
+                temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
+                if temperature and humidity:
+                    discomfort_index, feeling = calculate_discomfort_index(temperature, humidity)
+                    response_messages.append(f"🥵 不快指数: {discomfort_index} ({feeling})")
+                else:
+                    response_messages.append("🥵 不快指数: データ取得失敗")
+
             if "すべて" in text:
                 temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
-                if temperature and pressure and humidity:
-                    slack_manager.send_message(f"温度は{temperature}℃、湿度は{humidity}%、気圧は{pressure}hPaです。")
+                all_data = []
+                if temperature:
+                    all_data.append(f"🌡️ 温度: {temperature:.2f}℃")
                 else:
-                    slack_manager.send_message("センサーデータを取得できませんでした。")
+                    all_data.append("🌡️ 温度: データ取得失敗")
+                if humidity:
+                    all_data.append(f"💧 湿度: {humidity:.2f}%")
+                else:
+                    all_data.append("💧 湿度: データ取得失敗")
+                if pressure:
+                    all_data.append(f"🌬️ 気圧: {pressure:.2f} hPa")
+                else:
+                    all_data.append("🌬️ 気圧: データ取得失敗")
                 if gas_resistance:
-                    slack_manager.send_message(f"ガス抵抗は{gas_resistance}Ohmsです。")
+                    all_data.append(f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms")
                 else:
-                    slack_manager.send_message("ガス抵抗を取得できませんでした。")
+                    all_data.append("🛠️ ガス抵抗: データ取得失敗")
+                if temperature and humidity:
+                    discomfort_index, feeling = calculate_discomfort_index(temperature, humidity)
+                    response_messages.append(f"🥵 不快指数: {discomfort_index} ({feeling})")
+                else:
+                    response_messages.append("🥵 不快指数: データ取得失敗")
+                response_messages.append("\n".join(all_data))
+
+            if response_messages:
+                slack_manager.send_message("\n".join(response_messages))
+
     except Exception as e:
         logger.error(f"Failed to get latest message: {e}")
 
@@ -100,14 +134,32 @@ def monitor_sensor_to_save_data_task():
 def monitor_sensor_to_send_message_task():
     try:
         temperature, pressure, humidity, gas_resistance = bme_sensor.get_sensor_data()
-        if temperature:
-            slack_manager.send_message(f"温度は{temperature}℃です。")
-        if pressure:
-            slack_manager.send_message(f"気圧は{pressure}hPaです。")
-        if humidity:
-            slack_manager.send_message(f"湿度は{humidity}%です。")
-        if gas_resistance:
-            slack_manager.send_message(f"ガス抵抗は{gas_resistance}Ohmsです。")
+
+        message = "🌡️ センサーデータ 📊\n"
+
+        if temperature is not None:
+            message += f"🌡️ 温度: {temperature:.2f}℃\n"
+        else:
+            message += "🌡️ 温度: データ取得失敗\n"
+
+        if pressure is not None:
+            message += f"🌬️ 気圧: {pressure:.2f} hPa\n"
+        else:
+            message += "🌬️ 気圧: データ取得失敗\n"
+
+        if humidity is not None:
+            message += f"💧 湿度: {humidity:.2f}%\n"
+        else:
+            message += "💧 湿度: データ取得失敗\n"
+
+        if gas_resistance is not None:
+            message += f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms\n"
+        else:
+            message += "🛠️ ガス抵抗: データ取得失敗\n"
+
+        slack_manager.send_message(message)
+        logger.info(f"Sent sensor data message: {message}")
+
     except Exception as e:
         logger.error(f"Failed to read sensor data: {e}")
 
