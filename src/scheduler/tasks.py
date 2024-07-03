@@ -152,14 +152,14 @@ class SmartHomeMonitor:
     def end_of_day_task(self):
         logger.info("Running end of day task")
         try:
-            # from_datetimeはJSTの前日の0時0分0秒, to_datetimeはJSTの当日の0時0分0秒
-            jst = datetime.now().astimezone()
-            from_datetime = jst.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
-            to_datetime = jst.replace(hour=0, minute=0, second=0, microsecond=0)
-            # from_datetimeをUTCに変換
-            from_datetime = from_datetime.astimezone(tz=None)
-            # to_datetimeをUTCに変換
-            to_datetime = to_datetime.astimezone(tz=None)
+            # from_datetimeはJSTの前日の0時0分0秒, to_datetimeはJSTの当日の0時0分0秒でそれをUTCに変換
+            from_datetime = datetime.now().astimezone() - timedelta(days=1)
+            from_datetime = from_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+            from_datetime = from_datetime.astimezone().astimezone(tz=None)
+
+            to_datetime = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+            to_datetime = to_datetime.astimezone().astimezone(tz=None)
+
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
 
             print(len(sensor_data_list), from_datetime, to_datetime)
