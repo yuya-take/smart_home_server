@@ -1,5 +1,6 @@
 import os
 import contextlib
+from datetime import datetime
 
 from sqlmodel import SQLModel, create_engine, Session, select
 from dotenv import load_dotenv
@@ -47,3 +48,12 @@ class PostgresManager:
         except Exception as e:
             logger.error(f"Failed to create record in sensor_data: {e}")
             raise CreateRecordError("Failed to create record in sensor_data") from None
+
+    def get_sensor_data(self, from_datetime: datetime = None, to_datetime: datetime = None) -> list[SensorDataModel]:
+        with self.session_scope() as session:
+            stmt = select(SensorDataModel)
+            if from_datetime:
+                stmt = stmt.where(SensorDataModel.created_at >= from_datetime)
+            if to_datetime:
+                stmt = stmt.where(SensorDataModel.created_at <= to_datetime)
+            return session.exec(stmt).all()
