@@ -58,4 +58,5 @@ class PostgresManager:
             if to_datetime:
                 stmt = stmt.where(SensorDataModel.timestamp <= to_datetime)
             results = session.exec(stmt).all()
-            return results
+            data_list = [SensorDataModel(**result.__dict__) for result in results]
+            return data_list
