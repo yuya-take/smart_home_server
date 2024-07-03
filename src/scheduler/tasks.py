@@ -162,12 +162,12 @@ class SmartHomeMonitor:
             from_datetime = datetime.now(jst) - timedelta(days=1)
             from_datetime = from_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             # UTCに変換
-            from_datetime_utc = from_datetime.astimezone(utc)
+            from_datetime_utc = from_datetime.astimezone(utc).replace(tzinfo=None)
 
             # to_datetimeはJSTの当日の0時0分0秒
             to_datetime = datetime.now(jst).replace(hour=0, minute=0, second=0, microsecond=0)
             # UTCに変換
-            to_datetime_utc = to_datetime.astimezone(utc)
+            to_datetime_utc = to_datetime.astimezone(utc).replace(tzinfo=None)
 
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(
                 from_datetime_utc, to_datetime_utc
