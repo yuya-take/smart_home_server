@@ -159,12 +159,17 @@ class SmartHomeMonitor:
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
 
             # 縦軸に温度、湿度、気圧で横軸に時刻を取るグラフを作成
-            temperature_data = [sensor.temperature for sensor in sensor_data_list]
-            humidity_data = [sensor.humidity for sensor in sensor_data_list]
-            pressure_data = [sensor.pressure for sensor in sensor_data_list]
+            temperature_data = [float(sensor.temperature) for sensor in sensor_data_list]
+            humidity_data = [float(sensor.humidity) for sensor in sensor_data_list]
+            pressure_data = [float(sensor.pressure) for sensor in sensor_data_list]
+
+            print(temperature_data)
+            print(humidity_data)
+            print(pressure_data)
 
             # time_dataはJSTでの時刻
             time_data = [sensor.timestamp.astimezone().strftime("%H:%M") for sensor in sensor_data_list]
+            print(time_data)
 
             # 3軸グラフを作成する
             create_3axis_graph(
