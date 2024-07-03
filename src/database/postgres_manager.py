@@ -26,6 +26,7 @@ class PostgresManager:
         ECHO_LOG = False
 
         self.engine = create_engine(DATABASE_URL, echo=ECHO_LOG)
+        SQLModel.metadata.create_all(self.engine)
 
     @contextlib.contextmanager
     def session_scope(self):
@@ -56,4 +57,5 @@ class PostgresManager:
                 stmt = stmt.where(SensorDataModel.timestamp >= from_datetime)
             if to_datetime:
                 stmt = stmt.where(SensorDataModel.timestamp <= to_datetime)
-            return session.exec(stmt).all()
+            results = session.exec(stmt).all()
+            return results
