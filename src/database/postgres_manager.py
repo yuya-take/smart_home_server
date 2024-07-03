@@ -53,7 +53,7 @@ class PostgresManager:
         with self.session_scope() as session:
             stmt = select(SensorDataModel)
             if from_datetime:
-                stmt = stmt.where(SensorDataModel.created_at >= from_datetime)
+                stmt = stmt.where(SensorDataModel.timestamp >= from_datetime)
             if to_datetime:
-                stmt = stmt.where(SensorDataModel.created_at <= to_datetime)
+                stmt = stmt.where(SensorDataModel.timestamp <= to_datetime)
             return session.exec(stmt).all()
