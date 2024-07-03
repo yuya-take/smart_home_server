@@ -26,6 +26,17 @@ class SlackManager:
         except SlackApiError as e:
             logging.error(f"Error posting message: {e}")
 
+    def send_file(self, file_path, message):
+        try:
+            # Call the files.upload method using the WebClient
+            result = self.client.files_upload_v2(
+                channels=self.channel_id, file=file_path, title="📊 今日の統計", initial_comment=message
+            )
+            logging.debug(result)
+
+        except SlackApiError as e:
+            logging.error(f"Error uploading file: {e}")
+
     def get_latest_message(self):
         try:
             response = self.client.conversations_history(channel=self.channel_id, limit=1)

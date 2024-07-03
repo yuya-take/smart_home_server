@@ -1,11 +1,16 @@
 import schedule
+from matplotlib import pyplot as plt
+
 import time
+from datetime import datetime, timedelta
+
 from slack import SlackManager
 from bme import BmeSensor
 from database import PostgresManager
 from database.models import SensorDataModel
 from logger.logger import logger
 from utils import calculate_discomfort_index, calculate_air_quality_index
+from utils.create_graph import create_3axis_graph
 from utils.error_types import CreateRecordError
 
 
@@ -22,33 +27,6 @@ class SmartHomeMonitor:
         except Exception as e:
             logger.error(f"Failed to initialize {manager_name}: {e}")
             return None
-
-    def monitor_message_task(self):
-        try:
-            latest_message = self.slack_manager.get_latest_message()
-            if latest_message:
-                logger.info(f"New message: {latest_message['text']}")
-                response_messages = self.process_message(latest_message["text"])
-                if response_messages:
-                    self.slack_manager.send_message("\n".join(response_messages))
-        except Exception as e:
-            logger.error(f"Failed to get latest message: {e}")
-
-    def process_message(self, text):
-        response_messages = []
-        if "温度" in text:
-            response_messages.append(self.get_temperature_message())
-        if "湿度" in text:
-            response_messages.append(self.get_humidity_message())
-        if "気圧" in text:
-            response_messages.append(self.get_pressure_message())
-        if "ガス" in text:
-            response_messages.append(self.get_gas_message())
-        if "不快指数" in text or "不快" in text:
-            response_messages.append(self.get_discomfort_index_message())
-        if "すべて" in text:
-            response_messages.append(self.get_all_data_message())
-        return response_messages
 
     def get_temperature_message(self):
         temperature, _, _, _ = self.bme_sensor.get_sensor_data()
@@ -97,6 +75,50 @@ class SmartHomeMonitor:
         messages.append(self.get_discomfort_index_message())
         return "\n".join(messages)
 
+    def process_message(self, text):
+        response_messages = []
+        if "温度" in text:
+            response_messages.append(self.get_temperature_message())
+        if "湿度" in text:
+            response_messages.append(self.get_humidity_message())
+        if "気圧" in text:
+            response_messages.append(self.get_pressure_message())
+        if "ガス" in text:
+            response_messages.append(self.get_gas_message())
+        if "不快指数" in text or "不快" in text:
+            response_messages.append(self.get_discomfort_index_message())
+        if "すべて" in text:
+            response_messages.append(self.get_all_data_message())
+        return response_messages
+
+    def compose_sensor_message(self, temperature, pressure, humidity, gas_resistance):
+        message = "🌡️ 定期送信 📊\n"
+        if temperature and humidity:
+            discomfort_index, feeling = calculate_discomfort_index(temperature, humidity)
+            message += f"🥵 不快指数: {discomfort_index} ({feeling})\n"
+        else:
+            message += "🥵 不快指数: データ取得失敗\n"
+        message += f"🌡️ 温度: {temperature:.2f}℃\n" if temperature else "🌡️ 温度: データ取得失敗\n"
+        message += f"🌬️ 気圧: {pressure:.2f} hPa\n" if pressure else "🌬️ 気圧: データ取得失敗\n"
+        message += f"💧 湿度: {humidity:.2f}%\n" if humidity else "💧 湿度: データ取得失敗\n"
+        if gas_resistance and temperature and humidity:
+            air_quality_index, feeling = calculate_air_quality_index(gas_resistance, temperature, humidity)
+            message += f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms\n🌫️ 空気質指数: {air_quality_index} ({feeling})\n"
+        else:
+            message += "🛠️ ガス抵抗: データ取得失敗\n" if not gas_resistance else "🌫️ 空気質指数: データ取得失敗\n"
+        return message
+
+    def monitor_message_task(self):
+        try:
+            latest_message = self.slack_manager.get_latest_message()
+            if latest_message:
+                logger.info(f"New message: {latest_message['text']}")
+                response_messages = self.process_message(latest_message["text"])
+                if response_messages:
+                    self.slack_manager.send_message("\n".join(response_messages))
+        except Exception as e:
+            logger.error(f"Failed to get latest message: {e}")
+
     def monitor_sensor_to_save_data_task(self):
         try:
             temperature, pressure, humidity, gas_resistance = self.bme_sensor.get_sensor_data()
@@ -129,24 +151,42 @@ class SmartHomeMonitor:
 
     def end_of_day_task(self):
         logger.info("Running end of day task")
-        self.slack_manager.send_message("End of day summary task running")
+        try:
+            # from_datetimeはJSTの前日の0時0分0秒, to_datetimeはJSTの当日の0時0分0秒
+            jst = datetime.now().astimezone()
+            from_datetime = jst.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+            to_datetime = jst.replace(hour=0, minute=0, second=0, microsecond=0)
+            sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
 
-    def compose_sensor_message(self, temperature, pressure, humidity, gas_resistance):
-        message = "🌡️ 定期送信 📊\n"
-        if temperature and humidity:
-            discomfort_index, feeling = calculate_discomfort_index(temperature, humidity)
-            message += f"🥵 不快指数: {discomfort_index} ({feeling})\n"
-        else:
-            message += "🥵 不快指数: データ取得失敗\n"
-        message += f"🌡️ 温度: {temperature:.2f}℃\n" if temperature else "🌡️ 温度: データ取得失敗\n"
-        message += f"🌬️ 気圧: {pressure:.2f} hPa\n" if pressure else "🌬️ 気圧: データ取得失敗\n"
-        message += f"💧 湿度: {humidity:.2f}%\n" if humidity else "💧 湿度: データ取得失敗\n"
-        if gas_resistance and temperature and humidity:
-            air_quality_index, feeling = calculate_air_quality_index(gas_resistance, temperature, humidity)
-            message += f"🛠️ ガス抵抗: {gas_resistance:.2f} Ohms\n🌫️ 空気質指数: {air_quality_index} ({feeling})\n"
-        else:
-            message += "🛠️ ガス抵抗: データ取得失敗\n" if not gas_resistance else "🌫️ 空気質指数: データ取得失敗\n"
-        return message
+            # 縦軸に温度、湿度、気圧で横軸に時刻を取るグラフを作成
+            temperature_data = [sensor.temperature for sensor in sensor_data_list]
+            humidity_data = [sensor.humidity for sensor in sensor_data_list]
+            pressure_data = [sensor.pressure for sensor in sensor_data_list]
+
+            # time_dataはJSTでの時刻
+            time_data = [sensor.timestamp.astimezone().strftime("%H:%M") for sensor in sensor_data_list]
+
+            # 3軸グラフを作成する
+            create_3axis_graph(
+                x=time_data,
+                y1=temperature_data,
+                y2=humidity_data,
+                y3=pressure_data,
+                x_label="時間",
+                y1_label="温度(℃)",
+                y2_label="湿度(%)",
+                y3_label="気圧(hPa)",
+                title="24時間のセンサーデータ",
+                save_path="24hours_sensor_data.png",
+            )
+        except Exception as e:
+            logger.error(f"Failed to create 24 hours sensor data graph\n{e}")
+
+        try:
+            self.slack_manager.send_file("24hours_sensor_data.png", "24時間のセンサーデータ")
+            logger.info("Sent 24 hours sensor data graph")
+        except Exception as e:
+            logger.error(f"Failed to send 24 hours sensor data graph\n{e}")
 
     def schedule_tasks(self):
         logger.info("Start Smart Home Scheduler")
@@ -154,7 +194,8 @@ class SmartHomeMonitor:
         schedule.every(5).seconds.do(self.monitor_message_task)
         schedule.every(30).seconds.do(self.monitor_sensor_to_save_data_task)
         schedule.every().hour.at(":00").do(self.monitor_sensor_to_send_message_task)
-        schedule.every().day.at("00:00").do(self.end_of_day_task)
+        # schedule.every().day.at("00:00").do(self.end_of_day_task)
+        schedule.every(30).seconds.do(self.end_of_day_task)
 
         while True:
             schedule.run_pending()
