@@ -160,17 +160,17 @@ class SmartHomeMonitor:
 
             # from_datetimeはJSTの前日の0時0分0秒
             from_datetime = datetime.now(jst) - timedelta(days=1)
-            year_utc = from_datetime.astimezone(utc).year
-            month_utc = from_datetime.astimezone(utc).month
-            day_utc = from_datetime.astimezone(utc).day
-            from_datetime_utc = datetime(year_utc, month_utc, day_utc, 0, 0, 0, 000000)
+            from_year_utc = from_datetime.astimezone(utc).year
+            from_month_utc = from_datetime.astimezone(utc).month
+            from_day_utc = from_datetime.astimezone(utc).day
+            from_datetime_utc = datetime(from_year_utc, from_month_utc, from_day_utc, 0, 0, 0, 000000)
 
             # to_datetimeはJSTの当日の0時0分0秒
             to_datetime = datetime.now(jst).replace(hour=0, minute=0, second=0, microsecond=0)
-            year_utc = to_datetime.astimezone(utc).year
-            month_utc = to_datetime.astimezone(utc).month
-            day_utc = to_datetime.astimezone(utc).day
-            to_datetime_utc = datetime(year_utc, month_utc, day_utc, 0, 0, 0, 000000)
+            to_year_utc = to_datetime.astimezone(utc).year
+            to_month_utc = to_datetime.astimezone(utc).month
+            to_day_utc = to_datetime.astimezone(utc).day
+            to_datetime_utc = datetime(to_year_utc, to_month_utc, to_day_utc, 0, 0, 0, 000000)
 
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(
                 from_datetime_utc, to_datetime_utc
