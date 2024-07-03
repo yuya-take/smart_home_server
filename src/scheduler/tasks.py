@@ -179,11 +179,11 @@ class SmartHomeMonitor:
                 y1=temperature_data,
                 y2=humidity_data,
                 y3=pressure_data,
-                x_label="時間",
-                y1_label="温度(℃)",
-                y2_label="湿度(%)",
-                y3_label="気圧(hPa)",
-                title="24時間のセンサーデータ",
+                x_label="time",
+                y1_label="temperature(C)",
+                y2_label="humidity(%)",
+                y3_label="pressure(hPa)",
+                title="24 hours sensor data",
                 save_path="24hours_sensor_data.png",
             )
         except Exception as e:
