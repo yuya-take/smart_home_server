@@ -127,6 +127,10 @@ class SmartHomeMonitor:
         except Exception as e:
             logger.error(f"Failed to read sensor data: {e}")
 
+    def end_of_day_task(self):
+        logger.info("Running end of day task")
+        self.slack_manager.send_message("End of day summary task running")
+
     def compose_sensor_message(self, temperature, pressure, humidity, gas_resistance):
         message = "🌡️ 定期送信 📊\n"
         if temperature and humidity:
@@ -149,7 +153,9 @@ class SmartHomeMonitor:
         self.slack_manager.send_message("Starting the scheduler")
         schedule.every(5).seconds.do(self.monitor_message_task)
         schedule.every(30).seconds.do(self.monitor_sensor_to_save_data_task)
-        schedule.every(1).hour.do(self.monitor_sensor_to_send_message_task)
+        schedule.every().hour.at(":00").do(self.monitor_sensor_to_send_message_task)
+        schedule.every().day.at("00:00").do(self.end_of_day_task)
+
         while True:
             schedule.run_pending()
             time.sleep(1)
