@@ -153,30 +153,15 @@ class SmartHomeMonitor:
     def end_of_day_task(self):
         logger.info("Running end of day task")
         try:
-            # JSTのタイムゾーンを取得
-            jst = pytz.timezone("Asia/Tokyo")
-            # UTCのタイムゾーンを取得
-            utc = pytz.utc
-
             # from_datetimeはJSTの前日の0時0分0秒
-            from_datetime = datetime.now(jst) - timedelta(days=1)
-            from_year_utc = from_datetime.astimezone(utc).year
-            from_month_utc = from_datetime.astimezone(utc).month
-            from_day_utc = from_datetime.astimezone(utc).day
-            from_datetime_utc = datetime(from_year_utc, from_month_utc, from_day_utc, 0, 0, 0, 000000)
+            from_datetime = datetime.now() - timedelta(days=1)
 
             # to_datetimeはJSTの当日の0時0分0秒
-            to_datetime = datetime.now(jst).replace(hour=0, minute=0, second=0, microsecond=0)
-            to_year_utc = to_datetime.astimezone(utc).year
-            to_month_utc = to_datetime.astimezone(utc).month
-            to_day_utc = to_datetime.astimezone(utc).day
-            to_datetime_utc = datetime(to_year_utc, to_month_utc, to_day_utc, 0, 0, 0, 000000)
+            to_datetime = datetime.now()
 
-            sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(
-                from_datetime_utc, to_datetime_utc
-            )
+            sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
 
-            print(len(sensor_data_list), from_datetime_utc, to_datetime_utc)
+            print(len(sensor_data_list), from_datetime, to_datetime)
 
             # 縦軸に温度、湿度、気圧で横軸に時刻を取るグラフを作成
             temperature_data = [float(sensor.temperature) for sensor in sensor_data_list]
