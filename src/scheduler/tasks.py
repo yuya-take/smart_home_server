@@ -160,14 +160,17 @@ class SmartHomeMonitor:
 
             # from_datetimeはJSTの前日の0時0分0秒
             from_datetime = datetime.now(jst) - timedelta(days=1)
-            from_datetime = from_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-            # UTCに変換し、タイムゾーン情報を削除
-            from_datetime_utc = from_datetime.astimezone(utc).replace(tzinfo=None)
+            year_utc = from_datetime.astimezone(utc).year
+            month_utc = from_datetime.astimezone(utc).month
+            day_utc = from_datetime.astimezone(utc).day
+            from_datetime_utc = datetime(year_utc, month_utc, day_utc, 0, 0, 0, 000000)
 
             # to_datetimeはJSTの当日の0時0分0秒
             to_datetime = datetime.now(jst).replace(hour=0, minute=0, second=0, microsecond=0)
-            # UTCに変換し、タイムゾーン情報を削除
-            to_datetime_utc = to_datetime.astimezone(utc).replace(tzinfo=None)
+            year_utc = to_datetime.astimezone(utc).year
+            month_utc = to_datetime.astimezone(utc).month
+            day_utc = to_datetime.astimezone(utc).day
+            to_datetime_utc = datetime(year_utc, month_utc, day_utc, 0, 0, 0, 000000)
 
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(
                 from_datetime_utc, to_datetime_utc
@@ -217,7 +220,7 @@ class SmartHomeMonitor:
         schedule.every(30).seconds.do(self.monitor_sensor_to_save_data_task)
         schedule.every().hour.at(":00").do(self.monitor_sensor_to_send_message_task)
         # schedule.every().day.at("00:00").do(self.end_of_day_task)
-        schedule.every(30).seconds.do(self.end_of_day_task)
+        schedule.every(10).seconds.do(self.end_of_day_task)
 
         while True:
             schedule.run_pending()
