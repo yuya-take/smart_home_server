@@ -110,6 +110,8 @@ python-dotenv==1.0.1
     # via uvicorn
 python-multipart==0.0.9
     # via fastapi
+pytz==2024.1
+    # via smart-home-server
 pyyaml==6.0.1
     # via uvicorn
 requests==2.32.3

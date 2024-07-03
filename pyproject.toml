@@ -21,6 +21,7 @@ dependencies = [
     "sqlmodel>=0.0.19",
     "psycopg2-binary>=2.9.9",
     "matplotlib>=3.9.0",
+    "pytz>=2024.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

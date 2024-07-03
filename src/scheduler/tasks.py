@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 
 import time
 from datetime import datetime, timedelta
+import pytz
 
 from slack import SlackManager
 from bme import BmeSensor
@@ -152,15 +153,25 @@ class SmartHomeMonitor:
     def end_of_day_task(self):
         logger.info("Running end of day task")
         try:
-            # from_datetimeはJSTの前日の0時0分0秒, to_datetimeはJSTの当日の0時0分0秒でそれをUTCに変換
-            from_datetime = datetime.now().astimezone() - timedelta(days=1)
+            # JSTのタイムゾーンを取得
+            jst = pytz.timezone("Asia/Tokyo")
+            # UTCのタイムゾーンを取得
+            utc = pytz.utc
+
+            # from_datetimeはJSTの前日の0時0分0秒
+            from_datetime = datetime.now(jst) - timedelta(days=1)
             from_datetime = from_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-            from_datetime = from_datetime.astimezone().astimezone(tz=None)
+            # UTCに変換
+            from_datetime_utc = from_datetime.astimezone(utc)
 
-            to_datetime = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
-            to_datetime = to_datetime.astimezone().astimezone(tz=None)
+            # to_datetimeはJSTの当日の0時0分0秒
+            to_datetime = datetime.now(jst).replace(hour=0, minute=0, second=0, microsecond=0)
+            # UTCに変換
+            to_datetime_utc = to_datetime.astimezone(utc)
 
-            sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
+            sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(
+                from_datetime_utc, to_datetime_utc
+            )
 
             print(len(sensor_data_list), from_datetime, to_datetime)
 
