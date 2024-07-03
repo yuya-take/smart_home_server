@@ -1,9 +1,7 @@
 import schedule
-from matplotlib import pyplot as plt
 
 import time
 from datetime import datetime, timedelta
-import pytz
 
 from slack import SlackManager
 from bme import BmeSensor
@@ -153,10 +151,7 @@ class SmartHomeMonitor:
     def end_of_day_task(self):
         logger.info("Running end of day task")
         try:
-            # from_datetimeはJSTの前日の0時0分0秒
             from_datetime = datetime.now() - timedelta(days=1)
-
-            # to_datetimeはJSTの当日の0時0分0秒
             to_datetime = datetime.now()
 
             sensor_data_list: list[SensorDataModel] = self.postgres_manager.get_sensor_data(from_datetime, to_datetime)
