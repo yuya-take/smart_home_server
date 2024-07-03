@@ -173,7 +173,7 @@ class SmartHomeMonitor:
                 from_datetime_utc, to_datetime_utc
             )
 
-            print(len(sensor_data_list), from_datetime, to_datetime)
+            print(len(sensor_data_list), from_datetime_utc, to_datetime_utc)
 
             # 縦軸に温度、湿度、気圧で横軸に時刻を取るグラフを作成
             temperature_data = [float(sensor.temperature) for sensor in sensor_data_list]
