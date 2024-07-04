@@ -9,7 +9,7 @@ from database import PostgresManager
 from database.models import SensorDataModel
 from logger.logger import logger
 from utils import calculate_discomfort_index, calculate_air_quality_index
-from utils.create_graph import create_3axis_graph
+from utils.create_graph import create_3axis_graph, create_graph_x_axis_datetime
 from utils.error_types import CreateRecordError
 
 
@@ -163,13 +163,8 @@ class SmartHomeMonitor:
             humidity_data = [float(sensor.humidity) for sensor in sensor_data_list]
             pressure_data = [float(sensor.pressure) for sensor in sensor_data_list]
 
-            print(temperature_data)
-            print(humidity_data)
-            print(pressure_data)
-
-            # time_dataはJSTでの時刻
-            time_data = [sensor.timestamp.astimezone().strftime("%H:%M") for sensor in sensor_data_list]
-            print(time_data)
+            # time_dataはJSTでの時刻に変換する
+            time_data = [sensor.timestamp + timedelta(hours=9) for sensor in sensor_data_list]
 
             # 3軸グラフを作成する
             create_3axis_graph(

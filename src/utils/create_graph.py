@@ -3,6 +3,22 @@ import matplotlib.dates as mdates
 import numpy as np
 
 
+def create_graph_x_axis_datetime(x, y, x_label, y_label, title, save_path):
+    plt.figure()
+
+    plt.plot(x, y)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+
+    # Set x-axis to show every hour
+    plt.gca().xaxis.set_major_locator(mdates.HourLocator(interval=1))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%H-%M"))
+    plt.gcf().autofmt_xdate()
+
+    plt.savefig(save_path, dpi=300)
+
+
 def create_3axis_graph(x, y1, y2, y3, x_label, y1_label, y2_label, y3_label, title, save_path):
     fig = plt.figure()
     fig.subplots_adjust(bottom=0.2)
