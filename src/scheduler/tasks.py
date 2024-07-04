@@ -164,7 +164,7 @@ class SmartHomeMonitor:
             pressure_data = [float(sensor.pressure) for sensor in sensor_data_list]
 
             # time_dataはJSTでの時刻に変換する
-            time_data = [sensor.timestamp + timedelta(hours=9) for sensor in sensor_data_list]
+            time_data = [sensor.timestamp for sensor in sensor_data_list]
 
             # 1軸グラフを作成する
             create_graph_x_axis_datetime(
