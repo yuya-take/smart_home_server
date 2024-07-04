@@ -166,24 +166,39 @@ class SmartHomeMonitor:
             # time_dataはJSTでの時刻に変換する
             time_data = [sensor.timestamp + timedelta(hours=9) for sensor in sensor_data_list]
 
-            # 3軸グラフを作成する
-            create_3axis_graph(
+            # 1軸グラフを作成する
+            create_graph_x_axis_datetime(
                 x=time_data,
-                y1=temperature_data,
-                y2=humidity_data,
-                y3=pressure_data,
+                y=temperature_data,
                 x_label="time",
-                y1_label="temperature(C)",
-                y2_label="humidity(%)",
-                y3_label="pressure(hPa)",
-                title="24 hours sensor data",
-                save_path="24hours_sensor_data.png",
+                y_label="temperature(C)",
+                title="24 hours temperature data",
+                save_path="24hours_temperature_data.png",
             )
+            create_graph_x_axis_datetime(
+                x=time_data,
+                y=humidity_data,
+                x_label="time",
+                y_label="humidity(%)",
+                title="24 hours humidity data",
+                save_path="24hours_humidity_data.png",
+            )
+            create_graph_x_axis_datetime(
+                x=time_data,
+                y=pressure_data,
+                x_label="time",
+                y_label="pressure(hPa)",
+                title="24 hours pressure data",
+                save_path="24hours_pressure_data.png",
+            )
+
         except Exception as e:
             logger.error(f"Failed to create 24 hours sensor data graph\n{e}")
 
         try:
-            self.slack_manager.send_file("24hours_sensor_data.png", "24時間のセンサーデータ")
+            self.slack_manager.send_file("24hours_temperature_data.png", "24時間の気温データ")
+            self.slack_manager.send_file("24hours_humidity_data.png", "24時間の湿度データ")
+            self.slack_manager.send_file("24hours_pressure_data.png", "24時間の気圧データ")
             logger.info("Sent 24 hours sensor data graph")
         except Exception as e:
             logger.error(f"Failed to send 24 hours sensor data graph\n{e}")
