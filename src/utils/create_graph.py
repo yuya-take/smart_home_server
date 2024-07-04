@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
+import numpy as np
 
 
 def create_3axis_graph(x, y1, y2, y3, x_label, y1_label, y2_label, y3_label, title, save_path):
@@ -31,10 +32,10 @@ def create_3axis_graph(x, y1, y2, y3, x_label, y1_label, y2_label, y3_label, tit
 
     plt.title(title)
 
-    # X軸の時間ラベルを一時間ごとに表示
+    # Set x-axis to show every hour
     ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
     ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H-%M"))
 
-    fig.autofmt_xdate()  # X軸のラベルを自動的にフォーマット
+    fig.autofmt_xdate()  # Automatically format the x-axis labels
 
     plt.savefig(save_path, dpi=300)
