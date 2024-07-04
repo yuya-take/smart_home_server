@@ -209,8 +209,7 @@ class SmartHomeMonitor:
         schedule.every(5).seconds.do(self.monitor_message_task)
         schedule.every(5).minutes.do(self.monitor_sensor_to_save_data_task)
         schedule.every().hour.at(":00").do(self.monitor_sensor_to_send_message_task)
-        # schedule.every().day.at("00:00").do(self.end_of_day_task)
-        schedule.every(10).seconds.do(self.end_of_day_task)
+        schedule.every().day.at("00:00").do(self.end_of_day_task)
 
         while True:
             schedule.run_pending()
